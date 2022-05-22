@@ -9,7 +9,7 @@ import pandas as pd
 # load data
 ################################
 
-df = pd.read_parquet("datasets/EuropeanSoccerDatabase.parquet")
+df = pd.read_parquet("datasets/insurance.parquet")
 valid_rows = pd.DataFrame(True, index=df.index, columns=df.columns)
 results = {
     "COMP": {"COMP_REG": {}},
@@ -37,57 +37,33 @@ for c in df.columns:
 ################################
 
 # ACC_SINT #####################
-c = "birthday"
-values = pd.to_datetime(
-    df.loc[valid_rows[c], c], format="%Y-%m-%d %H:%M:%S", errors="coerce"
-)
-resp = ~values.isna()
-results["ACC"]["ACC_SINT"][c] = resp.sum() / valid_rows[c].sum()
-valid_rows.loc[resp.loc[~resp].index, c] = False
 
-c = "date"
-values = pd.to_datetime(df.loc[valid_rows[c], c], format="%Y-%m-%d", errors="coerce")
-resp = ~values.isna()
-results["ACC"]["ACC_SINT"][c] = resp.sum() / valid_rows[c].sum()
-valid_rows.loc[resp.loc[~resp].index, c] = False
-
+DICT = {
+    "sex": ["female", "male"],
+    "region": ["northeast", "southeast", "southwest", "northwest"],
+    "smoker": ["yes", "no"],
+}
+for c in DICT.keys():
+    resp = df.loc[valid_rows[c], c].isin(DICT[c])
+    results["ACC"]["ACC_SINT"][c] = resp.sum() / valid_rows[c].sum()
+    valid_rows.loc[resp.loc[~resp].index, c] = False
 
 # RAN_ACC ######################
 
-min_date = pd.to_datetime("01012008", format="%d%m%Y")
-max_date = pd.to_datetime("31122016", format="%d%m%Y")
-
-c = "birthday"
-values = pd.to_datetime(
-    df.loc[valid_rows[c], c], format="%Y-%m-%d %H:%M:%S", errors="coerce"
-)
-resp = values <= max_date
-results["ACC"]["ACC_SINT"][c] = resp.sum() / valid_rows[c].sum()
-valid_rows.loc[resp.loc[~resp].index, c] = False
-
-c = "date"
-values = pd.to_datetime(df.loc[valid_rows[c], c], format="%Y-%m-%d", errors="coerce")
-resp = (values >= min_date) & (values <= max_date)
-results["ACC"]["ACC_SINT"][c] = resp.sum() / valid_rows[c].sum()
-valid_rows.loc[resp.loc[~resp].index, c] = False
-
 # ACC_SEMAN ####################
 
-c = "height"
-resp = df.loc[valid_rows[c], c] <= 230
+c = "age"
+resp = df.loc[valid_rows[c], c] <= 120
 results["ACC"]["ACC_SEMAN"][c] = resp.sum() / valid_rows[c].sum()
 valid_rows.loc[resp.loc[~resp].index, c] = False
 
-c = "weight"
-resp = df.loc[valid_rows[c], c] <= 250
+c = "children"
+resp = df.loc[valid_rows[c], c] <= 10
 results["ACC"]["ACC_SEMAN"][c] = resp.sum() / valid_rows[c].sum()
 valid_rows.loc[resp.loc[~resp].index, c] = False
 
-c = "birthday"
-values = pd.to_datetime(
-    df.loc[valid_rows[c], c], format="%Y-%m-%d %H:%M:%S", errors="coerce"
-)
-resp = (max_date - values).dt.days <= 365 * 120
+c = "bmi"
+resp = df.loc[valid_rows[c], c] <= 250 / (2.3 * 2.3)
 results["ACC"]["ACC_SEMAN"][c] = resp.sum() / valid_rows[c].sum()
 valid_rows.loc[resp.loc[~resp].index, c] = False
 
@@ -118,17 +94,6 @@ valid_rows.loc[resp.loc[~resp].index, c] = False
 ################################
 
 # UNI_REG ######################
-u = "player_name"
-columns_uni = ["birthday"]
-for c in columns_uni:
-    mask = valid_rows[c] & valid_rows[u]
-    r = []
-    for i in df[u].unique():
-        values = df.loc[(df[u] == i) & mask, c]
-        if len(values) > 1:
-            resp = ~values.ne(values.shift().bfill())
-            r.append(resp.sum() / len(values.index))
-    results["UNI"]["UNI_REG"][c] = np.nanmean(r)
 
 ################################
 # finaly

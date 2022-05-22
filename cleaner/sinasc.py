@@ -234,14 +234,14 @@ for c in ["dt_cadastro", "dt_declarac", "dt_nasc"]:
 ################################
 
 final = {
-    "COMP": np.mean(list(results["COMP"]["COMP_REG"].values())),
-    "ACC": (
-        np.mean(list(results["ACC"]["ACC_SINT"].values()))
-        * np.mean(list(results["ACC"]["RAN_ACC"].values()))
-        * np.mean(list(results["ACC"]["ACC_SEMAN"].values()))
-    ),
-    "CRED": np.mean(list(results["CRED"]["CRED_VAL_DAT"].values())),
-    "CONS": np.mean(list(results["CONS"]["CONS_SEMAN"].values())),
-    "CURR": np.mean(list(results["CURR"]["CURR_UPD"].values())),
-    "UNI": np.mean(list(results["UNI"]["UNI_REG"].values())),
+    "COMP": np.nanmean(list(results["COMP"]["COMP_REG"].values())),
+    "ACC": np.nanprod([
+        np.nanmean(list(results["ACC"]["ACC_SINT"].values())),
+        np.nanmean(list(results["ACC"]["RAN_ACC"].values())),
+        np.nanmean(list(results["ACC"]["ACC_SEMAN"].values())),
+    ]),
+    "CRED": np.nanmean(list(results["CRED"]["CRED_VAL_DAT"].values())),
+    "CONS": np.nanmean(list(results["CONS"]["CONS_SEMAN"].values())),
+    "CURR": np.nanmean(list(results["CURR"]["CURR_UPD"].values())),
+    "UNI": np.nanmean(list(results["UNI"]["UNI_REG"].values())),
 }
