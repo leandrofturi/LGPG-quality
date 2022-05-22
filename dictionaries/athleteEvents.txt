@@ -1,0 +1,21 @@
+See https://www.kaggle.com/datasets/heesoo37/120-years-of-olympic-history-athletes-and-results or https://www.sports-reference.com/
+Accessed in may/2022
+
+Each row corresponds to an individual athlete competing in an individual Olympic event (athlete-events).
+- id: Unique number for each athlete
+- name: Athlete's name
+- sex: M or F
+- age: Integer
+- height: In centimeters
+- weight: In kilograms
+- team: Team name
+- noc: National Olympic Committee 3-letter code
+- games: Year and season
+- year: Integer
+- season: Summer or Winter
+- city: Host city
+- sport: Sport
+- event: Event
+- medal: Gold, Silver, Bronze, or NA
+- region: Region obtained by National Olympic Committee 3-letter code
+- notes: Notes obtained by National Olympic Committee 3-letter code

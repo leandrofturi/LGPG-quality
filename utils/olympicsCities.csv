@@ -1,0 +1,63 @@
+city,country,year,continent,summer,winter
+Albertville,France,1992,Europe,,XVI
+Amsterdam,Netherlands,1928,Europe,IX,
+Antwerp,Belgium,1920,Europe,VII,
+Athens,Greece,1896,Europe,I,
+Athens,Greece,2004,Europe,XXVIII,
+Atlanta,United States,1996,North America,XXVI,
+Barcelona,Spain,1992,Europe,XXV,
+Beijing,China,2008,Asia,XXIX,
+Beijing,China,2022,Asia,,XXIV
+Berlin,Germany,1936,Europe,XI,
+Brisbane,Australia,2032,Oceania,XXXV,
+Calgary,Canada,1988,North America,,XV
+Chamonix,France,1924,Europe,,I
+Cortina d'Ampezzo,Italy,1956,Europe,,VII
+Garmisch-Partenkirchen,Germany,1936,Europe,,IV
+Grenoble,France,1968,Europe,,X
+Helsinki,Finland,1952,Europe,XV,
+Innsbruck,Austria,1964,Europe,,IX
+Innsbruck,Austria,1976,Europe,,XII
+Lake Placid,United States,1932,North America,,III
+Lake Placid,United States,1980,North America,,XIII
+Lillehammer,Norway,1994,Europe,,XVII
+London,United Kingdom,1908,Europe,IV,
+London,United Kingdom,1948,Europe,XIV,
+London,United Kingdom,2012,Europe,XXX,
+Los Angeles,United States,1932,North America,X,
+Los Angeles,United States,1984,North America,XXIII,
+Los Angeles,United States,2028,North America,XXXIV,
+Melbourne,Australia,1956,Oceania,XVI,
+Mexico City,Mexico,1968,North America,XIX,
+Milan–Cortina d'Ampezzo,Italy,2026,Europe,,XXV
+Montreal,Canada,1976,North America,XXI,
+Moscow,Soviet Union,1980,Europe,XXII,
+Munich,West Germany,1972,Europe,XX,
+Nagano,Japan,1998,Asia,,XVIII
+Oslo,Norway,1952,Europe,,VI
+Paris,France,1900,Europe,II,
+Paris,France,1924,Europe,VIII,
+Paris,France,2024,Europe,XXXIII,
+Pyeongchang,South Korea,2018,Asia,,XXIII
+Rio de Janeiro,Brazil,2016,South America,XXXI,
+Rome,Italy,1960,Europe,XVII,
+Salt Lake City,United States,2002,North America,,XIX
+Sapporo,Japan,1972,Asia,,XI
+Sarajevo,Yugoslavia,1984,Europe,,XIV
+Seoul,South Korea,1988,Asia,XXIV,
+Sochi,Russia,2014,Europe,,XXII
+Squaw Valley,United States,1960,North America,,VIII
+St. Louis,United States,1904,North America,III,
+St. Moritz,Switzerland,1928,Europe,,II
+St. Moritz,Switzerland,1948,Europe,,V
+Stockholm,Sweden,1912,Europe,V,
+Sydney,Australia,2000,Oceania,XXVII,
+Tokyo,Japan,1964,Asia,XVIII,
+Turin,Italy,2006,Europe,,XX
+Vancouver,Canada,2010,North America,,XXI
+Tokyo,Japan,2020,Asia,XXXII,
+Berlin,Germany,1916,Europe,VI,
+Cortina d'Ampezzo,Italy,1944,Europe,,V
+London,United Kingdom,1944,Europe,XIII,
+Sapporo,Japan,1940,Asia,,V
+Tokyo,Japan,1940,Asia,XII,
