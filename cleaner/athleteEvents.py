@@ -48,11 +48,26 @@ valid_rows.loc[resp.loc[~resp].index, c] = False
 cities = geo_plug.all_State_CityNames("all")
 cities = json.loads(cities)
 cities = sum([sum([*c.values()], []) for c in cities], [])
+translated_cities = [
+    "Athina",
+    "Torino",
+    "Antwerpen",
+    "Roma",
+    "Moskva",
+    "Sankt Moritz",
+    "Lake Placid",
+    "Montreal",
+    "Squaw Valley",
+    "Cortina d'Ampezzo",
+    "Chamonix",
+]
 
-# c = "city"
-# resp = df.loc[valid_rows[c], c].isin(cities)
-# results["ACC"]["ACC_SINT"][c] = resp.sum() / valid_rows[c].sum()
-# valid_rows.loc[resp.loc[~resp].index, c] = False
+c = "city"
+resp = df.loc[valid_rows[c], c].isin(cities) | df.loc[valid_rows[c], c].isin(
+    translated_cities
+)
+results["ACC"]["ACC_SINT"][c] = resp.sum() / valid_rows[c].sum()
+valid_rows.loc[resp.loc[~resp].index, c] = False
 
 DICT = {"sex": ["M", "F"], "medal": ["Gold", "Silver", "Bronze"]}
 for c in DICT.keys():
@@ -77,13 +92,6 @@ results["ACC"]["RAN_ACC"][c] = resp.sum() / valid_rows[c].sum()
 valid_rows.loc[resp.loc[~resp].index, c] = False
 
 # ACC_SEMAN ####################
-olympics = pd.read_csv("utils/olympicsCities.csv")
-translated_cities = ['Athina', 'Torino', 'Antwerpen', 'Roma', 'Moskva', 'Sankt Moritz']
-
-c = "city"
-resp = df.loc[valid_rows[c], c].isin(olympics.city) | df.loc[valid_rows[c], c].isin(translated_cities)
-results["ACC"]["ACC_SEMAN"][c] = resp.sum() / valid_rows[c].sum()
-valid_rows.loc[resp.loc[~resp].index, c] = False
 
 
 ################################
@@ -93,7 +101,9 @@ valid_rows.loc[resp.loc[~resp].index, c] = False
 # CRED_VAL_DAT #################
 
 c = "city"
-resp = df.loc[valid_rows[c], c].isin(olympics.city) | df.loc[valid_rows[c], c].isin(translated_cities)
+resp = df.loc[valid_rows[c], c].isin(olympics.city) | df.loc[valid_rows[c], c].isin(
+    translated_cities
+)
 results["CRED"]["CRED_VAL_DAT"][c] = resp.sum() / valid_rows[c].sum()
 valid_rows.loc[resp.loc[~resp].index, c] = False
 
@@ -133,7 +143,7 @@ for c in columns_uni:
     r = []
     for i in df[u].unique():
         values = df.loc[(df[u] == i) & mask, c]
-        if len(values) > 0:
+        if len(values) > 1:
             resp = ~values.ne(values.shift().bfill())
             r.append(resp.sum() / len(values.index))
     results["UNI"]["UNI_REG"][c] = np.mean(r)

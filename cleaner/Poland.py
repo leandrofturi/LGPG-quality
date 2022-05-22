@@ -99,7 +99,7 @@ for c in columns_uni:
     r = []
     for i in df[u].unique():
         values = df.loc[(df[u] == i) & mask, c]
-        if len(values) > 0:
+        if len(values) > 1:
             resp = values.ne(values.shift().bfill())
             r.append(resp.sum() / len(values.index))
     results["UNI"]["UNI_REG"][c] = np.mean(r)
