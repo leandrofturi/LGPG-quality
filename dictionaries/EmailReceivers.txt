@@ -1,0 +1,4 @@
+See https://www.kaggle.com/datasets/kaggle/hillary-clinton-emails
+Accessed in may/2022
+
+Throughout 2015, Hillary Clinton has been embroiled in controversy over the use of personal email accounts on non-government servers during her time as the United States Secretary of State. Some political experts and opponents maintain that Clinton's use of personal email accounts to conduct Secretary of State affairs is in violation of protocols and federal laws that ensure appropriate recordkeeping of government activity.
