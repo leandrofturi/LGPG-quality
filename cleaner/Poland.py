@@ -57,13 +57,6 @@ results["ACC"]["RAN_ACC"][c] = (values <= max_date).sum() / valid_rows[c].sum()
 valid_rows.loc[resp.loc[~resp].index, c] = False
 
 # ACC_SEMAN ####################
-c = "number_of_votes"
-values = [
-    pd.to_numeric(re.sub(r",", ".", re.sub(r"\(|\)|%", "", v)), errors="coerce")
-    for v in df.loc[valid_rows[c], c].str[-7:]
-]
-results["ACC"]["ACC_SEMAN"][c] = (values <= 100).sum() / valid_rows[c].sum()
-valid_rows.loc[resp.loc[~resp].index, c] = False
 
 
 ################################
@@ -71,6 +64,14 @@ valid_rows.loc[resp.loc[~resp].index, c] = False
 ################################
 
 # CRED_VAL_DAT #################
+
+c = "number_of_votes"
+values = [
+    pd.to_numeric(re.sub(r",", ".", re.sub(r"\(|\)|%", "", v)), errors="coerce")
+    for v in df.loc[valid_rows[c], c].str[-7:]
+]
+results["CRED"]["CRED_VAL_DAT"][c] = (values <= 100).sum() / valid_rows[c].sum()
+valid_rows.loc[resp.loc[~resp].index, c] = False
 
 
 ################################

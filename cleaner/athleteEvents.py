@@ -81,6 +81,11 @@ for c in DICT.keys():
 
 # RAN_ACC ######################
 
+c = "year"
+resp = df.loc[valid_rows[c], c] <= 2016
+results["ACC"]["RAN_ACC"][c] = resp.sum() / valid_rows[c].sum()
+valid_rows.loc[resp.loc[~resp].index, c] = False
+
 # ACC_SEMAN ####################
 
 c = "height"
@@ -90,11 +95,6 @@ valid_rows.loc[resp.loc[~resp].index, c] = False
 
 c = "weight"
 resp = df.loc[valid_rows[c], c] <= 250
-results["ACC"]["ACC_SEMAN"][c] = resp.sum() / valid_rows[c].sum()
-valid_rows.loc[resp.loc[~resp].index, c] = False
-
-c = "year"
-resp = df.loc[valid_rows[c], c] <= 2016
 results["ACC"]["ACC_SEMAN"][c] = resp.sum() / valid_rows[c].sum()
 valid_rows.loc[resp.loc[~resp].index, c] = False
 
