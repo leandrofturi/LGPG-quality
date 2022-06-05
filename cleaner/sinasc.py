@@ -21,7 +21,6 @@ results = {
 }
 
 LGPD_COLUMNS = [
-    "est_civ_mae",
     "raca_cor",
     "raca_cor_mae",
     "raca_cor_rn",
@@ -88,7 +87,6 @@ for c in columns_date:
     results["ACC"]["ACC_SINT"][c] = resp.sum() / valid_rows[c].sum()
     valid_rows.loc[resp.loc[~resp].index, c] = False
 
-# https://servicodados.ibge.gov.br/api/v1/localidades/municipios
 mun_ibge = pd.read_csv("utils/municipiosIBGE.csv")
 
 columns_mun_ibge = ["cod_mun_nasc", "cod_mun_natu", "cod_mun_res"]

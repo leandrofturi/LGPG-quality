@@ -1,0 +1,11 @@
+r = GET("https://servicodados.ibge.gov.br/api/v1/localidades/municipios")
+mun_ibge = [
+    {
+        "id": m["id"],
+        "nome": m["nome"],
+        "UF": m["microrregiao"]["mesorregiao"]["UF"]["sigla"],
+        "UF_nome": m["microrregiao"]["mesorregiao"]["UF"]["nome"],
+    }
+    for m in r.json()
+]
+mun_ibge = pd.DataFrame(mun_ibge)

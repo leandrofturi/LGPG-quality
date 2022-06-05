@@ -4,7 +4,6 @@
 
 import numpy as np
 import pandas as pd
-from requests import get as GET
 
 ################################
 # load data
@@ -12,7 +11,8 @@ from requests import get as GET
 
 df1 = pd.read_parquet("datasets/eleicoes1.parquet")
 df2 = pd.read_parquet("datasets/eleicoes2.parquet")
-df = df1.append(df2)
+df3 = pd.read_parquet("datasets/eleicoes3.parquet")
+df = df1.append(df2).append(df3)
 valid_rows = pd.DataFrame(True, index=df.index, columns=df.columns)
 results = {
     "COMP": {"COMP_REG": {}},
@@ -22,6 +22,8 @@ results = {
     "CURR": {"CURR_UPD": {}},
     "UNI": {"UNI_REG": {}},
 }
+
+LGPD_COLUMNS = ["etnia", "partido", "sigla_partido"]
 
 
 ################################
@@ -115,27 +117,14 @@ resp = ~values.isna()
 results["ACC"]["ACC_SINT"][c] = resp.sum() / valid_rows[c].sum()
 valid_rows.loc[resp.loc[~resp].index, c] = False
 
-DICT_SIZES = {
-    "cpf": 11,
-    "titulo_eleitoral": 12
-}
+DICT_SIZES = {"cpf": 11, "titulo_eleitoral": 12}
 
 for c in DICT_SIZES.keys():
     resp = df.loc[valid_rows[c], c].astype(str).str.len() == DICT_SIZES[c]
     results["ACC"]["ACC_SINT"][c] = resp.sum() / valid_rows[c].sum()
     valid_rows.loc[resp.loc[~resp].index, c] = False
 
-
-r = GET("https://servicodados.ibge.gov.br/api/v1/localidades/municipios")
-mun_ibge = [
-    {
-        "id": m["id"],
-        "nome": m["nome"],
-        "UF": m["microrregiao"]["mesorregiao"]["UF"]["sigla"],
-    }
-    for m in r.json()
-]
-mun_ibge = pd.DataFrame(mun_ibge)
+mun_ibge = pd.read_csv("utils/municipiosIBGE.csv")
 
 columns_mun_ibge = ["sigla_unidade_federativa", "sigla_unidade_federativa_nascimento"]
 for c in columns_mun_ibge:
@@ -146,7 +135,7 @@ for c in columns_mun_ibge:
 
 c = "municipio_nascimento"
 values = df.loc[valid_rows[c], c]
-resp = values.isin(mun_ibge["UF"].str.upper())
+resp = values.str.upper().isin(mun_ibge["nome"].str.upper())
 results["ACC"]["ACC_SINT"][c] = resp.sum() / valid_rows[c].sum()
 valid_rows.loc[resp.loc[~resp].index, c] = False
 
@@ -161,15 +150,30 @@ resp = (values >= min_date) & (values <= max_date)
 results["ACC"]["RAN_ACC"][c] = resp.sum() / valid_rows[c].sum()
 valid_rows.loc[resp.loc[~resp].index, c] = False
 
+c = "data_nascimento"
+values = pd.to_datetime(df.loc[valid_rows[c], c], format="%Y-%m-%d", errors="coerce")
+resp = values <= max_date
+results["ACC"]["RAN_ACC"][c] = resp.sum() / valid_rows[c].sum()
+valid_rows.loc[resp.loc[~resp].index, c] = False
+
+
 # ACC_SEMAN ####################
 
 c = "data_nascimento"
 values = pd.to_datetime(
     df.loc[valid_rows[c], c], format="%Y-%m-%d", errors="coerce"
 ).dt.to_pydatetime()
-resp = (max_date - values).dt.days <= 120
+resp = (pd.Series(max_date - values).apply(lambda x: x.days) / 365) <= 120
 results["ACC"]["ACC_SEMAN"][c] = resp.sum() / valid_rows[c].sum()
 valid_rows.loc[resp.loc[~resp].index, c] = False
+
+pleitos = pd.read_csv("utils/eleicoes.csv")
+
+c = "ano"
+resp = df.loc[valid_rows[c], c].isin(pleitos["pleito_ano"])
+results["ACC"]["ACC_SEMAN"][c] = resp.sum() / valid_rows[c].sum()
+valid_rows.loc[resp.loc[~resp].index, c] = False
+
 
 ################################
 # credibility (credibilidade) CRED
@@ -183,6 +187,36 @@ valid_rows.loc[resp.loc[~resp].index, c] = False
 ################################
 
 # CONS_SEMAN ###################
+mask = valid_rows.sigla_unidade_federativa_nascimento & valid_rows.municipio_nascimento
+r1 = (
+    df.loc[mask, :]
+    .groupby("sigla_unidade_federativa_nascimento")
+    .apply(
+        lambda x: x["municipio_nascimento"]
+        .str.upper()
+        .isin(
+            mun_ibge.loc[
+                mun_ibge["UF"] == x["sigla_unidade_federativa_nascimento"].iloc[0],
+                "nome",
+            ].str.upper()
+        )
+    )
+)
+results["CONS"]["CONS_SEMAN"][
+    "sigla_unidade_federativa_nascimento#municipio_nascimento"
+] = (r1.sum() / mask.sum())
+
+mask = valid_rows.cpf
+r2 = ~df.loc[mask, "cpf"].isnull()
+results["CONS"]["CONS_SEMAN"]["cpf"] = r2.sum() / mask.sum()
+
+mask = valid_rows.titulo_eleitoral
+r3 = ~df.loc[mask, "titulo_eleitoral"].isnull()
+results["CONS"]["CONS_SEMAN"]["titulo_eleitoral"] = r3.sum() / mask.sum()
+
+mask = valid_rows.despesa_maxima_campanha
+r4 = df.loc[mask, "despesa_maxima_campanha"] >= 0
+results["CONS"]["CONS_SEMAN"]["despesa_maxima_campanha"] = r4.sum() / mask.sum()
 
 
 ################################
@@ -197,6 +231,28 @@ valid_rows.loc[resp.loc[~resp].index, c] = False
 ################################
 
 # UNI_REG ######################
+
+u = "cpf"
+columns_uni = [
+    "cpf",
+    "data_nascimento",
+    "etnia",
+    "nacionalidade",
+    "nome",
+    "municipio_nascimento",
+    "sigla_unidade_federativa_nascimento",
+    "titulo_eleitoral",
+]
+for c in columns_uni:
+    mask = valid_rows[c] & valid_rows[u]
+    r = []
+    for i in df[u].unique():
+        values = df.loc[(df[u] == i) & mask, c]
+        if len(values) > 1:
+            resp = values.ne(values.shift().bfill())
+            r.append(resp.sum() / len(values.index))
+    results["UNI"]["UNI_REG"][c] = np.nanmean(r)
+
 
 ################################
 # finaly
