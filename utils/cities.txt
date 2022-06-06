@@ -1,0 +1,5 @@
+from geosky import geo_plug
+
+cities = geo_plug.all_State_CityNames("all")
+cities = json.loads(cities)
+cities = sum([sum([*c.values()], []) for c in cities], [])

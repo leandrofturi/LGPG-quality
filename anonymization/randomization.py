@@ -5,6 +5,7 @@
 class Randomization:
     @staticmethod
     def anonymize(df, columns):
+        df_cpy = df.copy()
         for c in columns:
-            df[c] = df[c].sample(frac=1, random_state=42).reset_index(drop=True)
-        return df
+            df_cpy[c] = df_cpy[c].sample(frac=1, random_state=42).reset_index(drop=True)
+        return df_cpy
