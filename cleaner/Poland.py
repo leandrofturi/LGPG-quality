@@ -18,6 +18,12 @@ from anonymization.pseudoanonymization import PseudoAnonymization
 ################################
 
 
+def div(x, y):
+    if y == 0:
+        return np.nan
+    return x / y
+
+
 def cleaner(df, out_filename):
     print(f"Starting {out_filename}...")
 
@@ -38,7 +44,7 @@ def cleaner(df, out_filename):
     # COMP_REG
     for c in df.columns:
         resp = ~df.loc[valid_rows[c], c].isna()
-        results["COMP"]["COMP_REG"][c] = resp.sum() / valid_rows[c].sum()
+        results["COMP"]["COMP_REG"][c] = div(resp.sum(), valid_rows[c].sum())
         valid_rows.loc[resp.loc[~resp].index, c] = False
 
     ################################
@@ -51,7 +57,7 @@ def cleaner(df, out_filename):
         df.loc[valid_rows[c], c].str[:10], format="%Y-%m-%d", errors="coerce"
     )
     resp = ~values.isna()
-    results["ACC"]["ACC_SINT"][c] = resp.sum() / valid_rows[c].sum()
+    results["ACC"]["ACC_SINT"][c] = div(resp.sum(), valid_rows[c].sum())
     valid_rows.loc[resp.loc[~resp].index, c] = False
 
     # RAN_ACC ######################
@@ -61,17 +67,19 @@ def cleaner(df, out_filename):
         df.loc[valid_rows[c], c].str[:10], format="%Y-%m-%d", errors="coerce"
     )
     resp = ~values.isna()
-    results["ACC"]["RAN_ACC"][c] = (values <= max_date).sum() / valid_rows[c].sum()
+    results["ACC"]["RAN_ACC"][c] = div((values <= max_date).sum(), valid_rows[c].sum())
     valid_rows.loc[resp.loc[~resp].index, c] = False
 
     # ACC_SEMAN ####################
 
     c = "number_of_votes"
-    values = pd.Series([
-        pd.to_numeric(re.sub(r",", ".", re.sub(r"\(|\)|%", "", v)), errors="coerce")
-        for v in df.loc[valid_rows[c], c].str[-7:]
-    ])
-    results["ACC"]["ACC_SEMAN"][c] = (values <= 100).sum() / valid_rows[c].sum()
+    values = pd.Series(
+        [
+            pd.to_numeric(re.sub(r",", ".", re.sub(r"\(|\)|%", "", v)), errors="coerce")
+            for v in df.loc[valid_rows[c], c].str[-7:]
+        ]
+    )
+    results["ACC"]["ACC_SEMAN"][c] = div((values <= 100).sum(), valid_rows[c].sum())
     valid_rows.loc[resp.loc[~resp].index, c] = False
 
     ################################
@@ -101,9 +109,11 @@ def cleaner(df, out_filename):
     columns_uni = ["date_and_place_of_birth"]
     for c in columns_uni:
         resp = df.groupby(u)[c].apply(
-            lambda x: len(x.loc[valid_rows[c] & valid_rows[u]].unique()) <= 1
+            lambda x: len(x.index)
+            if len(x.loc[valid_rows[c] & valid_rows[u]].unique()) <= 1
+            else -len(x.index)
         )
-        results["UNI"]["UNI_REG"][c] = resp.sum() / (len(df[u].unique()))
+        results["UNI"]["UNI_REG"][c] = div(resp[resp > 0].sum(), abs(resp).sum())
         # for p in df[u].unique():
         #     valid_rows.loc[df.loc[(df[u] == p) & bool(resp.get(p))].index, c] = False
 
@@ -112,18 +122,18 @@ def cleaner(df, out_filename):
     ################################
 
     final = {
-        "COMP": np.nanmean(list(results["COMP"]["COMP_REG"].values())),
-        "ACC": np.nanprod(
+        "COMP": np.mean(list(results["COMP"]["COMP_REG"].values())),
+        "ACC": np.prod(
             [
-                np.nanmean(list(results["ACC"]["ACC_SINT"].values())),
-                np.nanmean(list(results["ACC"]["RAN_ACC"].values())),
-                np.nanmean(list(results["ACC"]["ACC_SEMAN"].values())),
+                np.mean(list(results["ACC"]["ACC_SINT"].values())),
+                np.mean(list(results["ACC"]["RAN_ACC"].values())),
+                np.mean(list(results["ACC"]["ACC_SEMAN"].values())),
             ]
         ),
-        "CRED": np.nanmean(list(results["CRED"]["CRED_VAL_DAT"].values())),
-        "CONS": np.nanmean(list(results["CONS"]["CONS_SEMAN"].values())),
-        "CURR": np.nanmean(list(results["CURR"]["CURR_UPD"].values())),
-        "UNI": np.nanmean(list(results["UNI"]["UNI_REG"].values())),
+        "CRED": -1,
+        "CONS": -1,
+        "CURR": -1,
+        "UNI": np.mean(list(results["UNI"]["UNI_REG"].values())),
     }
 
     with open(out_filename, "w") as f:

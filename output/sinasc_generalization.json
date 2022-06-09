@@ -1,8 +1,8 @@
 {
     "COMP": 0.07834091478740891,
-    "ACC": 1.0,
+    "ACC": NaN,
     "CRED": NaN,
-    "CONS": 0.9999877809025843,
+    "CONS": NaN,
     "CURR": NaN,
-    "UNI": NaN
+    "UNI": -1
 }

@@ -17,6 +17,12 @@ from anonymization.pseudoanonymization import PseudoAnonymization
 ################################
 
 
+def div(x, y):
+    if y == 0:
+        return np.nan
+    return x / y
+
+
 def cleaner(df, out_filename):
     print(f"Starting {out_filename}...")
 
@@ -37,7 +43,7 @@ def cleaner(df, out_filename):
     # COMP_REG
     for c in df.columns:
         resp = ~df.loc[valid_rows[c], c].isna()
-        results["COMP"]["COMP_REG"][c] = resp.sum() / valid_rows[c].sum()
+        results["COMP"]["COMP_REG"][c] = div(resp.sum(), valid_rows[c].sum())
         valid_rows.loc[resp.loc[~resp].index, c] = False
 
     ################################
@@ -105,13 +111,13 @@ def cleaner(df, out_filename):
     }
     for c in DICT.keys():
         resp = df.loc[valid_rows[c], c].isin(DICT[c])
-        results["ACC"]["ACC_SINT"][c] = resp.sum() / valid_rows[c].sum()
+        results["ACC"]["ACC_SINT"][c] = div(resp.sum(), valid_rows[c].sum())
         valid_rows.loc[resp.loc[~resp].index, c] = False
 
     c = "ano"
     values = pd.to_datetime(df.loc[valid_rows[c], c], format="%Y", errors="coerce")
     resp = ~values.isna()
-    results["ACC"]["ACC_SINT"][c] = resp.sum() / valid_rows[c].sum()
+    results["ACC"]["ACC_SINT"][c] = div(resp.sum(), valid_rows[c].sum())
     valid_rows.loc[resp.loc[~resp].index, c] = False
 
     c = "data_nascimento"
@@ -119,14 +125,14 @@ def cleaner(df, out_filename):
         df.loc[valid_rows[c], c], format="%Y-%m-%d", errors="coerce"
     )
     resp = ~values.isna()
-    results["ACC"]["ACC_SINT"][c] = resp.sum() / valid_rows[c].sum()
+    results["ACC"]["ACC_SINT"][c] = div(resp.sum(), valid_rows[c].sum())
     valid_rows.loc[resp.loc[~resp].index, c] = False
 
     DICT_SIZES = {"cpf": 11, "titulo_eleitoral": 12}
 
     for c in DICT_SIZES.keys():
         resp = df.loc[valid_rows[c], c].astype(str).str.len() == DICT_SIZES[c]
-        results["ACC"]["ACC_SINT"][c] = resp.sum() / valid_rows[c].sum()
+        results["ACC"]["ACC_SINT"][c] = div(resp.sum(), valid_rows[c].sum())
         valid_rows.loc[resp.loc[~resp].index, c] = False
 
     mun_ibge = pd.read_csv("utils/municipiosIBGE.csv")
@@ -138,19 +144,19 @@ def cleaner(df, out_filename):
     for c in columns_mun_ibge:
         values = df.loc[valid_rows[c], c].astype(str)
         resp = values.isin(mun_ibge["UF"])
-        results["ACC"]["ACC_SINT"][c] = resp.sum() / valid_rows[c].sum()
+        results["ACC"]["ACC_SINT"][c] = div(resp.sum(), valid_rows[c].sum())
         valid_rows.loc[resp.loc[~resp].index, c] = False
 
     c = "municipio_nascimento"
     values = df.loc[valid_rows[c], c].astype(str)
     resp = values.str.upper().isin(mun_ibge["nome"].str.upper())
-    results["ACC"]["ACC_SINT"][c] = resp.sum() / valid_rows[c].sum()
+    results["ACC"]["ACC_SINT"][c] = div(resp.sum(), valid_rows[c].sum())
     valid_rows.loc[resp.loc[~resp].index, c] = False
 
     c = "unidade_eleitoral"
     values = df.loc[valid_rows[c], c].astype(str)
     resp = values.str.upper().isin(mun_ibge["nome"].str.upper())
-    results["ACC"]["ACC_SINT"][c] = resp.sum() / valid_rows[c].sum()
+    results["ACC"]["ACC_SINT"][c] = div(resp.sum(), valid_rows[c].sum())
     valid_rows.loc[resp.loc[~resp].index, c] = False
 
     # RAN_ACC ######################
@@ -161,7 +167,7 @@ def cleaner(df, out_filename):
     c = "ano"
     values = pd.to_datetime(df.loc[valid_rows[c], c], format="%Y", errors="coerce")
     resp = (values >= min_date) & (values <= max_date)
-    results["ACC"]["RAN_ACC"][c] = resp.sum() / valid_rows[c].sum()
+    results["ACC"]["RAN_ACC"][c] = div(resp.sum(), valid_rows[c].sum())
     valid_rows.loc[resp.loc[~resp].index, c] = False
 
     c = "data_nascimento"
@@ -169,7 +175,7 @@ def cleaner(df, out_filename):
         df.loc[valid_rows[c], c], format="%Y-%m-%d", errors="coerce"
     )
     resp = values <= max_date
-    results["ACC"]["RAN_ACC"][c] = resp.sum() / valid_rows[c].sum()
+    results["ACC"]["RAN_ACC"][c] = div(resp.sum(), valid_rows[c].sum())
     valid_rows.loc[resp.loc[~resp].index, c] = False
 
     # ACC_SEMAN ####################
@@ -184,7 +190,7 @@ def cleaner(df, out_filename):
         )
         / 365
     ) <= 120
-    results["ACC"]["ACC_SEMAN"][c] = resp.sum() / valid_rows[c].sum()
+    results["ACC"]["ACC_SEMAN"][c] = div(resp.sum(), valid_rows[c].sum())
     valid_rows.loc[resp.loc[~resp].index, c] = False
 
     pleitos = pd.read_csv("utils/eleicoes.csv")
@@ -195,7 +201,7 @@ def cleaner(df, out_filename):
         .astype(int)
         .isin(pleitos["pleito_ano"].astype(int))
     )
-    results["ACC"]["ACC_SEMAN"][c] = resp.sum() / valid_rows[c].sum()
+    results["ACC"]["ACC_SEMAN"][c] = div(resp.sum(), valid_rows[c].sum())
     valid_rows.loc[resp.loc[~resp].index, c] = False
 
     ################################
@@ -210,7 +216,7 @@ def cleaner(df, out_filename):
         .str.upper()
         .isin(mun_ibge.loc[mun_ibge["UF"] == "ES", "nome"].str.upper())
     )
-    results["CRED"]["CRED_VAL_DAT"][c] = resp.sum() / valid_rows[c].sum()
+    results["CRED"]["CRED_VAL_DAT"][c] = div(resp.sum(), valid_rows[c].sum())
     valid_rows.loc[resp.loc[~resp].index, c] = False
 
     ################################
@@ -240,15 +246,15 @@ def cleaner(df, out_filename):
         )
         results["CONS"]["CONS_SEMAN"][
             "sigla_unidade_federativa_nascimento#municipio_nascimento"
-        ] = (r1.sum() / mask.sum())
+        ] = div(r1.sum(), mask.sum())
     else:
         results["CONS"]["CONS_SEMAN"][
             "sigla_unidade_federativa_nascimento#municipio_nascimento"
-        ] = np.NaN
+        ] = np.nan
 
     mask = valid_rows.despesa_maxima_campanha
     r2 = pd.to_numeric(df.loc[mask, "despesa_maxima_campanha"], errors="coerce") >= 0
-    results["CONS"]["CONS_SEMAN"]["despesa_maxima_campanha"] = r2.sum() / mask.sum()
+    results["CONS"]["CONS_SEMAN"]["despesa_maxima_campanha"] = div(r2.sum(), mask.sum())
 
     ################################
     # currentness (atualidade) CURR
@@ -273,9 +279,11 @@ def cleaner(df, out_filename):
     ]
     for c in columns_uni:
         resp = df.groupby(u)[c].apply(
-            lambda x: len(x.loc[valid_rows[c] & valid_rows[u]].unique()) <= 1
+            lambda x: len(x.index)
+            if len(x.loc[valid_rows[c] & valid_rows[u]].unique()) <= 1
+            else -len(x.index)
         )
-        results["UNI"]["UNI_REG"][c] = resp.sum() / (len(df[u].unique()))
+        results["UNI"]["UNI_REG"][c] = div(resp[resp > 0].sum(), abs(resp).sum())
         # for p in df[u].unique():
         #     valid_rows.loc[df.loc[(df[u] == p) & bool(resp.get(p))].index, c] = False
 
@@ -284,18 +292,18 @@ def cleaner(df, out_filename):
     ################################
 
     final = {
-        "COMP": np.nanmean(list(results["COMP"]["COMP_REG"].values())),
-        "ACC": np.nanprod(
+        "COMP": np.mean(list(results["COMP"]["COMP_REG"].values())),
+        "ACC": np.prod(
             [
-                np.nanmean(list(results["ACC"]["ACC_SINT"].values())),
-                np.nanmean(list(results["ACC"]["RAN_ACC"].values())),
-                np.nanmean(list(results["ACC"]["ACC_SEMAN"].values())),
+                np.mean(list(results["ACC"]["ACC_SINT"].values())),
+                np.mean(list(results["ACC"]["RAN_ACC"].values())),
+                np.mean(list(results["ACC"]["ACC_SEMAN"].values())),
             ]
         ),
-        "CRED": np.nanmean(list(results["CRED"]["CRED_VAL_DAT"].values())),
-        "CONS": np.nanmean(list(results["CONS"]["CONS_SEMAN"].values())),
-        "CURR": np.nanmean(list(results["CURR"]["CURR_UPD"].values())),
-        "UNI": np.nanmean(list(results["UNI"]["UNI_REG"].values())),
+        "CRED": np.mean(list(results["CRED"]["CRED_VAL_DAT"].values())),
+        "CONS": np.mean(list(results["CONS"]["CONS_SEMAN"].values())),
+        "CURR": -1,
+        "UNI": np.mean(list(results["UNI"]["UNI_REG"].values())),
     }
 
     with open(out_filename, "w") as f:
