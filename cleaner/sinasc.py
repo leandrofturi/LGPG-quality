@@ -23,7 +23,7 @@ def div(x, y):
     return x / y
 
 
-def cleaner(df, out_filename):
+def cleaner(df, out_filename=None):
     print(f"Starting {out_filename}...")
 
     valid_rows = pd.DataFrame(True, index=df.index, columns=df.columns)
@@ -39,6 +39,10 @@ def cleaner(df, out_filename):
     ################################
     # completeness (completude) COMP
     ################################
+
+    # bussiness rule:
+    df.loc[(df.id_anomal != 1) & df.cod_anomal.isnull(), "cod_anomal"] = "0"
+    df.loc[((df.loc_nasc != 1) | (df.loc_nasc != 2)) & df.cod_estab.isnull(), "cod_estab"] = "0"
 
     # COMP_REG
     for c in df.columns:
@@ -141,8 +145,11 @@ def cleaner(df, out_filename):
 
     # CRED_VAL_DAT #################
     c = "cod_mun_nasc"
-    resp = df.loc[valid_rows[c], c].astype(int, errors="ignore").astype(str).isin(
-        mun_ibge.loc[mun_ibge["UF"] == "ES", "id"].astype(str)
+    resp = (
+        df.loc[valid_rows[c], c]
+        .astype(int, errors="ignore")
+        .astype(str)
+        .isin(mun_ibge.loc[mun_ibge["UF"] == "ES", "id"].astype(str))
     )
     results["CRED"]["CRED_VAL_DAT"][c] = div(resp.sum(), valid_rows[c].sum())
     valid_rows.loc[resp.loc[~resp].index, c] = False
@@ -268,8 +275,11 @@ def cleaner(df, out_filename):
         "UNI": -1,
     }
 
-    with open(out_filename, "w") as f:
-        json.dump(final, f, indent=4, sort_keys=False)
+    if out_filename:
+        with open(out_filename, "w") as f:
+            json.dump(final, f, indent=4, sort_keys=False)
+    
+    return valid_rows
 
 
 ################################
@@ -369,15 +379,15 @@ rules = {
 # run
 ################################
 
-df = pd.read_parquet("datasets/sinasc.parquet")
-cleaner(df, "output/sinasc_raw.json")
-cleaner(Supression.anonymize(df, LGPD_COLUMNS), "output/sinasc_supression.json")
-cleaner(Randomization.anonymize(df, LGPD_COLUMNS), "output/sinasc_randomization.json")
+df = pd.read_parquet("datasets/Sinasc.parquet")
+cleaner(df, "output/Sinasc_raw.json")
+cleaner(Supression.anonymize(df, LGPD_COLUMNS), "output/Sinasc_supression.json")
+cleaner(Randomization.anonymize(df, LGPD_COLUMNS), "output/Sinasc_randomization.json")
 cleaner(
     Generalization.anonymize(df, LGPD_COLUMNS, rules),
-    "output/sinasc_generalization.json",
+    "output/Sinasc_generalization.json",
 )
 cleaner(
     PseudoAnonymization.anonymize(df, LGPD_COLUMNS),
-    "output/sinasc_pseudoanonymization.json",
+    "output/Sinasc_pseudoanonymization.json",
 )

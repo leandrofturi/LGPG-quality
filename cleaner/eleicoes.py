@@ -23,7 +23,7 @@ def div(x, y):
     return x / y
 
 
-def cleaner(df, out_filename):
+def cleaner(df, out_filename=None):
     print(f"Starting {out_filename}...")
 
     valid_rows = pd.DataFrame(True, index=df.index, columns=df.columns)
@@ -284,8 +284,8 @@ def cleaner(df, out_filename):
             else -len(x.index)
         )
         results["UNI"]["UNI_REG"][c] = div(resp[resp > 0].sum(), abs(resp).sum())
-        # for p in df[u].unique():
-        #     valid_rows.loc[df.loc[(df[u] == p) & bool(resp.get(p))].index, c] = False
+        for p in df[u].unique():
+            valid_rows.loc[df.loc[(df[u] == p) & ((resp.get(p) or 1) < 0)].index, c] = False
 
     ################################
     # finaly
@@ -306,8 +306,11 @@ def cleaner(df, out_filename):
         "UNI": np.mean(list(results["UNI"]["UNI_REG"].values())),
     }
 
-    with open(out_filename, "w") as f:
-        json.dump(final, f, indent=4, sort_keys=False)
+    if out_filename:
+        with open(out_filename, "w") as f:
+            json.dump(final, f, indent=4, sort_keys=False)
+
+    return valid_rows
 
 
 ################################

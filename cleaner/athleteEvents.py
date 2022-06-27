@@ -150,8 +150,8 @@ def cleaner(df, out_filename):
             else -len(x.index)
         )
         results["UNI"]["UNI_REG"][c] = div(resp[resp > 0].sum(), abs(resp).sum())
-        # for p in df[u].unique():
-        #     valid_rows.loc[df.loc[(df[u] == p) & bool(resp.get(p))].index, c] = False
+        for p in df[u].unique():
+            valid_rows.loc[df.loc[(df[u] == p) & ((resp.get(p) or 1) < 0)].index, c] = False
 
     ################################
     # finaly
