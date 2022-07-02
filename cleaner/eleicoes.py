@@ -23,6 +23,7 @@ def div(x, y):
     return x / y
 
 
+# VER RANDOMIZAÇÃO
 def cleaner(df, out_filename=None):
     print(f"Starting {out_filename}...")
 

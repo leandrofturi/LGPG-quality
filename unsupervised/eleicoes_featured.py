@@ -1,21 +1,58 @@
 import re
+import json
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
 from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
+from sklearn.metrics import rand_score
 from sklearn.preprocessing import StandardScaler
 from yellowbrick.cluster.elbow import kelbow_visualizer
 
-from cleaner.eleicoes import cleaner
+# from cleaner.eleicoes import cleaner
 from unsupervised.model_featured import learn
 from anonymization.supression import Supression
 from anonymization.randomization import Randomization
 from anonymization.generalization import Generalization
 from anonymization.pseudoanonymization import PseudoAnonymization
 
-from cleaner.eleicoes import LGPD_COLUMNS, rules
+
+LGPD_COLUMNS = [
+    "cpf",
+    "data_nascimento",
+    "declara_bens",
+    "cargo",
+    "etnia",
+    "estado_civil",
+    "genero",
+    "grau_instrucao",
+    "nacionalidade",
+    "ocupacao",
+    "unidade_eleitoral",
+    "despesa_maxima_campanha",
+    "email",
+    "nome",
+    "municipio_nascimento",
+    "partido",
+    "nome_social",
+    "nome_urna",
+    "sigla_partido",
+    "sigla_unidade_federativa",
+    "sigla_unidade_federativa_nascimento",
+    "titulo_eleitoral",
+]
+
+rules = {
+    "cpf": {"type": "crop", "start": 0, "stop": 5},
+    "despesa_maxima_campanha": {"type": "hist", "nbins": 20},
+    "email": {"type": "crop", "start": 0, "stop": 5},
+    "nome": {"type": "split", "char": " ", "keep": 0},
+    "nome_social": {"type": "split", "char": " ", "keep": 0},
+    "nome_urna": {"type": "split", "char": " ", "keep": 0},
+    "titulo_eleitoral": {"type": "crop", "start": 0, "stop": 5},
+}
+
 
 np.random.seed(42)
 
@@ -57,7 +94,7 @@ np.random.seed(42)
 
 
 def categorize(df):
-    X = df[["ano"]].copy()
+    X = df[["ano"]].apply(lambda x: pd.to_numeric(x, errors="coerce"))
 
     X["data_nascimento"] = (
         pd.to_datetime(
@@ -88,12 +125,19 @@ def categorize(df):
         "tipo_eleicao",
         "sigla_partido",
     ]:
-        X = pd.concat([X, pd.get_dummies(df[c].astype(str), prefix=c)], axis=1)
+        X = pd.concat(
+            [
+                X,
+                pd.get_dummies(df[c].astype(str), prefix=c).apply(
+                    lambda x: x.astype(int)
+                ),
+            ],
+            axis=1,
+        )
 
-    try:
-        X["despesa_maxima_campanha"] = df["despesa_maxima_campanha"].astype(int)
-    except:
-        X["despesa_maxima_campanha"] = df["despesa_maxima_campanha"].apply(int, base=16)
+    X["despesa_maxima_campanha"] = pd.to_numeric(
+        df["despesa_maxima_campanha"], errors="coerce"
+    )
 
     t = pd.get_dummies(df["ocupacao"].astype(str), prefix="ocupacao")
     # pca = PCA()
@@ -121,10 +165,10 @@ def categorize(df):
 # elbow
 ################################
 
-df = pd.read_parquet("datasets/eleicoes.parquet")
-X = categorize(df)
+# df = pd.read_parquet("datasets/eleicoes.parquet")
+# X = categorize(df)
 
-kelbow_visualizer(KMeans(), X, k=(2, 24), title="eleicoes")
+# kelbow_visualizer(KMeans(), X, k=(2, 24), title="eleicoes")
 
 K = 6
 
@@ -132,25 +176,35 @@ K = 6
 # learn
 ################################
 
-df = pd.read_parquet("datasets/km_eleicoes.parquet")
-learn(categorize(df)[:30000], K, "output/km_eleicoes_raw.png")
-learn(
+df = pd.read_parquet("datasets/eleicoes.parquet")
+y_true = learn(categorize(df)[:30000], K, "output/km_eleicoes_raw.png")
+y_supression = learn(
     categorize(Supression.anonymize(df, LGPD_COLUMNS))[:30000],
     K,
     "output/km_eleicoes_supression.png",
 )
-learn(
+y_randomization = learn(
     categorize(Randomization.anonymize(df, LGPD_COLUMNS))[:30000],
     K,
     "output/km_eleicoes_randomization.png",
 )
-learn(
+y_generalization = learn(
     categorize(Generalization.anonymize(df, LGPD_COLUMNS, rules))[:30000],
     K,
     "output/km_eleicoes_generalization.png",
 )
-learn(
+y_pseudoanonymization = learn(
     categorize(PseudoAnonymization.anonymize(df, LGPD_COLUMNS))[:30000],
     K,
     "output/km_eleicoes_pseudoanonymization.png",
 )
+
+final = {
+    "supression": rand_score(y_true, y_supression),
+    "randomization": rand_score(y_true, y_randomization),
+    "generalization": rand_score(y_true, y_generalization),
+    "pseudoanonymization": rand_score(y_true, y_pseudoanonymization)
+}
+
+with open("rand_score_eleicoes.json", "w") as f:
+    json.dump(final, f, indent=4, sort_keys=False)

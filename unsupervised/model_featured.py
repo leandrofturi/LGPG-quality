@@ -77,3 +77,5 @@ def learn(X, K, out_filename):
     plt.savefig(f"output/feature_weights_{dataset}.png")
 
     print("ellapsed time is {:.6f} seconds".format(time.time() - start))
+
+    return y

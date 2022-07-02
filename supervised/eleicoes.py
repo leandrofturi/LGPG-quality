@@ -1,8 +1,12 @@
 import numpy as np
 import pandas as pd
 
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import StandardScaler
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import confusion_matrix, accuracy_score
+from sklearn.metrics import confusion_matrix, accuracy_score, plot_confusion_matrix, rand_score
 
 # from cleaner.eleicoes import cleaner
 from anonymization.supression import Supression
@@ -10,7 +14,42 @@ from anonymization.randomization import Randomization
 from anonymization.generalization import Generalization
 from anonymization.pseudoanonymization import PseudoAnonymization
 
-from cleaner.eleicoes import LGPD_COLUMNS, rules
+
+LGPD_COLUMNS = [
+    "cpf",
+    "data_nascimento",
+    "declara_bens",
+    "cargo",
+    "etnia",
+    "estado_civil",
+    "genero",
+    "grau_instrucao",
+    "nacionalidade",
+    "ocupacao",
+    "unidade_eleitoral",
+    "despesa_maxima_campanha",
+    "email",
+    "nome",
+    "municipio_nascimento",
+    "partido",
+    "nome_social",
+    "nome_urna",
+    "sigla_partido",
+    "sigla_unidade_federativa",
+    "sigla_unidade_federativa_nascimento",
+    "titulo_eleitoral",
+]
+
+rules = {
+    "cpf": {"type": "crop", "start": 0, "stop": 5},
+    "despesa_maxima_campanha": {"type": "hist", "nbins": 20},
+    "email": {"type": "crop", "start": 0, "stop": 5},
+    "nome": {"type": "split", "char": " ", "keep": 0},
+    "nome_social": {"type": "split", "char": " ", "keep": 0},
+    "nome_urna": {"type": "split", "char": " ", "keep": 0},
+    "titulo_eleitoral": {"type": "crop", "start": 0, "stop": 5},
+}
+
 
 # from sklearn.pipeline import Pipeline
 # from sklearn.ensemble import RandomForestClassifier
@@ -41,7 +80,7 @@ from cleaner.eleicoes import LGPD_COLUMNS, rules
 #  'sigla_unidade_federativa_nascimento']
 
 
-def learn(df, out_filename):
+def learn(df, y, out_filename):
     X = df[
         [
             "ano",
@@ -59,13 +98,11 @@ def learn(df, out_filename):
             "sigla_unidade_federativa_nascimento",
         ]
     ].iloc[:30000]
-    y = df["despesa_maxima_campanha"].iloc[:30000]
-    y = (y > y.mean()).astype(int)
 
     enc = {}
     for c in X.select_dtypes(include=["string", "object", "category"]).columns:
         enc[c] = LabelEncoder()
-        X.loc[X.index, c] = enc[c].fit_transform(X[c].astype(str))
+        X.loc[X.index, c] = enc[c].fit_transform(X[c].astype(str)).astype(int)
     X.fillna(-1)
 
     X_train, X_test, y_train, y_test = train_test_split(
@@ -81,9 +118,16 @@ def learn(df, out_filename):
     rf.fit(X_train, y_train)
     predictions = rf.predict(X_test)
 
+    plt.figure()
+    plot_confusion_matrix(rf, X_test, y_test, cmap="PuOr")
+    plt.title(f"eleicoes")
+    plt.tight_layout()
+    plt.savefig(f"{out_filename.replace('rf', 'rf_cf').replace('.json', '.png')}")
+
     final = {
-        "confusion_matrix": confusion_matrix(y_test, predictions),
+        "confusion_matrix": confusion_matrix(y_test, predictions).tolist(),
         "accuracy_score": accuracy_score(y_test, predictions),
+        "rand_score": rand_score(y_test, predictions),
     }
 
     with open(out_filename, "w") as f:
@@ -95,18 +139,23 @@ def learn(df, out_filename):
 ################################
 
 df = pd.read_parquet("datasets/eleicoes.parquet")
-learn(df, K, "output/rf_eleicoes_raw.png")
-learn(Supression.anonymize(df, LGPD_COLUMNS), K, "output/rf_eleicoes_supression.png")
+y = df["despesa_maxima_campanha"].iloc[:30000]
+y = (y > y.mean()).astype(int)
+
+learn(df, y, "output/rf_eleicoes_raw.json")
+learn(Supression.anonymize(df, LGPD_COLUMNS), y, "output/rf_eleicoes_supression.json")
 learn(
-    Randomization.anonymize(df, LGPD_COLUMNS), K, "output/rf_eleicoes_randomization.png"
+    Randomization.anonymize(df, LGPD_COLUMNS),
+    y,
+    "output/rf_eleicoes_randomization.json",
 )
 learn(
     Generalization.anonymize(df, LGPD_COLUMNS, rules),
-    K,
-    "output/rf_eleicoes_generalization.png",
+    y,
+    "output/rf_eleicoes_generalization.json",
 )
 learn(
     PseudoAnonymization.anonymize(df, LGPD_COLUMNS),
-    K,
-    "output/rf_eleicoes_pseudoanonymization.png",
+    y,
+    "output/rf_eleicoes_pseudoanonymization.json",
 )

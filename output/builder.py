@@ -1,12 +1,27 @@
 import json
-from os import listdir
-from os.path import isfile, join
 
 import pandas as pd
+import matplotlib.pyplot as plt
 
-files = [
-    f for f in listdir("output") if isfile(join("output", f)) and f.endswith(".json")
-]
+
+files = []
+for d in [
+    "athleteEvents",
+    "Canada",
+    "eleicoes",
+    "EuropeanSoccerDatabase",
+    "Poland",
+    "Sinasc",
+]:
+    for m in [
+        "raw",
+        "supression",
+        "generalization",
+        "randomization",
+        "pseudoanonymization",
+    ]:
+        files.append(d + "_" + m + ".json")
+
 
 result = []
 for f in files:
@@ -44,3 +59,26 @@ del df["test_rank"]
 
 df = df.set_index(["dataset", "test"])
 df.to_excel("output/results.xlsx")
+
+
+for m in ["COMP", "ACC", "CRED", "CONS", "CURR", "UNI"]:
+    v = df[[m]].reset_index()
+    v = v.loc[v[m] > 0,:]
+    plt.figure()
+    for d in [
+        "athleteEvents",
+        "Canada",
+        "eleicoes",
+        "EuropeanSoccerDatabase",
+        "Poland",
+        "Sinasc",
+    ]:
+        w = v.loc[v["dataset"] == d, :]
+        plt.bar(w["test"], w[m], 0.15, label=d, align='center')
+
+    v.pivot(*v).plot(kind = 'bar')
+    plt.title(f"{m}")
+    plt.xticks(rotation=45)
+    plt.legend()
+    plt.tight_layout()
+    plt.savefig(f"output/{m}.png")

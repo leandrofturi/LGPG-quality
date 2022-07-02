@@ -42,7 +42,9 @@ def cleaner(df, out_filename=None):
 
     # bussiness rule:
     df.loc[(df.id_anomal != 1) & df.cod_anomal.isnull(), "cod_anomal"] = "0"
-    df.loc[((df.loc_nasc != 1) | (df.loc_nasc != 2)) & df.cod_estab.isnull(), "cod_estab"] = "0"
+    df.loc[
+        ((df.loc_nasc != 1) | (df.loc_nasc != 2)) & df.cod_estab.isnull(), "cod_estab"
+    ] = "0"
 
     # COMP_REG
     for c in df.columns:
@@ -278,7 +280,7 @@ def cleaner(df, out_filename=None):
     if out_filename:
         with open(out_filename, "w") as f:
             json.dump(final, f, indent=4, sort_keys=False)
-    
+
     return valid_rows
 
 
