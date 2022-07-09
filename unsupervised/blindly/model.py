@@ -40,7 +40,7 @@ def learn(df, K, out_filename):
     X_embedded = TSNE(n_components=2, unsupervised_rate="auto", init="pca").fit_transform(X)
 
     plt.figure()
-    scatter = plt.scatter(X_embedded[:, 0], X_embedded[:, 1], c=y, cmap="inferno")
+    scatter = plt.scatter(X_embedded[:, 0], X_embedded[:, 1], c=y, cmap="viridis")
     plt.legend(handles=scatter.legend_elements()[0], labels=range(kmeans.n_clusters))
     plt.title(f'{dataset} k={K}')
     plt.tight_layout()
@@ -71,7 +71,7 @@ def learn(df, K, out_filename):
         )
 
     fig, ax = plt.subplots()
-    cm = plt.get_cmap("inferno")
+    cm = plt.get_cmap("viridis")
     ax.set_prop_cycle(color=[cm(1.0 * i / labels) for i in range(labels)])
     for k, v in cluster_feature_weights.items():
         ax.bar(v["variable"][:5], v["weight"][:5], label=k)

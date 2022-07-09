@@ -1,5 +1,6 @@
 import json
 
+import matplotlib
 import pandas as pd
 import matplotlib.pyplot as plt
 
@@ -9,7 +10,7 @@ for d in [
     "athleteEvents",
     "Canada",
     "eleicoes",
-    "EuropeanSoccerDatabase",
+    "EuropeanSoccer",
     "Poland",
     "Sinasc",
 ]:
@@ -61,24 +62,51 @@ df = df.set_index(["dataset", "test"])
 df.to_excel("output/results.xlsx")
 
 
+cmap = matplotlib.cm.get_cmap("viridis", 5)
 for m in ["COMP", "ACC", "CRED", "CONS", "CURR", "UNI"]:
     v = df[[m]].reset_index()
-    v = v.loc[v[m] > 0,:]
+    v = v.loc[v[m] > 0, :]
+    v.loc[v.test == "raw", "test"] = "Original"
+    v.loc[v.test == "supression", "test"] = "SUP"
+    v.loc[v.test == "generalization", "test"] = "GEN"
+    v.loc[v.test == "randomization", "test"] = "RAND"
+    v.loc[v.test == "pseudoanonymization", "test"] = "PSAN"
     plt.figure()
-    for d in [
-        "athleteEvents",
-        "Canada",
-        "eleicoes",
-        "EuropeanSoccerDatabase",
-        "Poland",
-        "Sinasc",
-    ]:
+    for i, d in enumerate(
+        [
+            "athleteEvents",
+            "Canada",
+            "eleicoes",
+            "EuropeanSoccer",
+            "Poland",
+            "Sinasc",
+        ]
+    ):
         w = v.loc[v["dataset"] == d, :]
-        plt.bar(w["test"], w[m], 0.15, label=d, align='center')
+        plt.bar(
+            w["test"],
+            w[m],
+            0.5,
+            label=d,
+            align="center",
+            color=matplotlib.colors.rgb2hex(cmap(i)),
+        )
 
-    v.pivot(*v).plot(kind = 'bar')
-    plt.title(f"{m}")
+    v.pivot(*v)[["Original", "SUP", "RAND", "GEN", "PSAN"]].plot(
+        kind="bar", cmap="viridis"
+    )
     plt.xticks(rotation=45)
-    plt.legend()
+    plt.xlabel("Base de dados")
+    plt.ylabel(m)
+    plt.legend(
+        frameon=True,
+        framealpha=1,
+        edgecolor="black",
+        bbox_to_anchor=(0, 1.02, 1, 0.2),
+        loc="lower left",
+        mode="expand",
+        borderaxespad=0,
+        ncol=5,
+    )
     plt.tight_layout()
     plt.savefig(f"output/{m}.png")

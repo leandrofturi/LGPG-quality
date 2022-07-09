@@ -103,25 +103,25 @@ rules = {
 
 K = 8
 
-df = pd.read_parquet("datasets/EuropeanSoccerDatabase.parquet")
-learn(df, K, "output/EuropeanSoccerDatabase_raw.png")
+df = pd.read_parquet("datasets/EuropeanSoccer.parquet")
+learn(df, K, "output/EuropeanSoccer_raw.png")
 learn(
     Supression.anonymize(df, LGPD_COLUMNS),
     K,
-    "output/EuropeanSoccerDatabase_supression.png",
+    "output/EuropeanSoccer_supression.png",
 )
 learn(
     Randomization.anonymize(df, LGPD_COLUMNS),
     K,
-    "output/EuropeanSoccerDatabase_randomization.png",
+    "output/EuropeanSoccer_randomization.png",
 )
 learn(
     Generalization.anonymize(df, LGPD_COLUMNS, rules),
     K,
-    "output/EuropeanSoccerDatabase_generalization.png",
+    "output/EuropeanSoccer_generalization.png",
 )
 learn(
     PseudoAnonymization.anonymize(df, LGPD_COLUMNS),
     K,
-    "output/EuropeanSoccerDatabase_pseudoanonymization.png",
+    "output/EuropeanSoccer_pseudoanonymization.png",
 )

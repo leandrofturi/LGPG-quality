@@ -280,21 +280,21 @@ rules = {
 # run
 ################################
 
-df = pd.read_parquet("datasets/EuropeanSoccerDatabase.parquet")
-cleaner(df, "output/EuropeanSoccerDatabase_raw.json")
+df = pd.read_parquet("datasets/EuropeanSoccer.parquet")
+cleaner(df, "output/EuropeanSoccer_raw.json")
 cleaner(
     Supression.anonymize(df, LGPD_COLUMNS),
-    "output/EuropeanSoccerDatabase_supression.json",
+    "output/EuropeanSoccer_supression.json",
 )
 cleaner(
     Randomization.anonymize(df, LGPD_COLUMNS),
-    "output/EuropeanSoccerDatabase_randomization.json",
+    "output/EuropeanSoccer_randomization.json",
 )
 cleaner(
     Generalization.anonymize(df, LGPD_COLUMNS, rules),
-    "output/EuropeanSoccerDatabase_generalization.json",
+    "output/EuropeanSoccer_generalization.json",
 )
 cleaner(
     PseudoAnonymization.anonymize(df, LGPD_COLUMNS),
-    "output/EuropeanSoccerDatabase_pseudoanonymization.json",
+    "output/EuropeanSoccer_pseudoanonymization.json",
 )

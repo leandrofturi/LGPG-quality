@@ -4,7 +4,7 @@ datasets = [
     "athleteEvents",
     "Canada",
     "eleicoes",
-    "EuropeanSoccerDatabase",
+    "EuropeanSoccer",
     "Poland",
     "Sinasc",
 ]

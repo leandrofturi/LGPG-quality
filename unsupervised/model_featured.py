@@ -26,7 +26,7 @@ def learn(X, K, out_filename):
 
     X_embedded = TSNE(n_components=2, init="pca").fit_transform(X)
 
-    cmap = matplotlib.cm.get_cmap("inferno", K)
+    cmap = matplotlib.cm.get_cmap("viridis", K)
     fig, ax = plt.subplots()
     for g in range(kmeans.n_clusters):
         ix = np.where(y == g)
@@ -36,8 +36,10 @@ def learn(X, K, out_filename):
             label=g,
             c=matplotlib.colors.rgb2hex(cmap(g)),
         )
-    ax.legend()
-    plt.title(f"{dataset} k={K}")
+    plt.xlabel('Primeira componente')
+    plt.ylabel('Segunda componente')
+    plt.grid(False)
+    ax.legend(frameon=True, framealpha=1, edgecolor="black")
     plt.tight_layout()
     plt.savefig(f"output/scatter_{dataset}.png")
 
@@ -66,7 +68,7 @@ def learn(X, K, out_filename):
         )
 
     fig, ax = plt.subplots()
-    cm = plt.get_cmap("inferno")
+    cm = plt.get_cmap("viridis")
     ax.set_prop_cycle(color=[cm(1.0 * i / labels) for i in range(labels)])
     for k, v in cluster_feature_weights.items():
         ax.bar(v["variable"][:5], v["weight"][:5], label=k)

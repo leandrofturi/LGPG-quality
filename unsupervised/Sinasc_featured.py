@@ -5,7 +5,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 from sklearn.cluster import KMeans
-from sklearn.metrics import rand_score
+from sklearn.metrics import adjusted_rand_score
 from sklearn.preprocessing import StandardScaler
 from yellowbrick.cluster.elbow import kelbow_visualizer
 
@@ -224,10 +224,10 @@ y_pseudoanonymization = learn(
 )
 
 final = {
-    "supression": rand_score(y_true, y_supression),
-    "randomization": rand_score(y_true, y_randomization),
-    "generalization": rand_score(y_true, y_generalization),
-    "pseudoanonymization": rand_score(y_true, y_pseudoanonymization)
+    "supression": adjusted_rand_score(y_true, y_supression),
+    "randomization": adjusted_rand_score(y_true, y_randomization),
+    "generalization": adjusted_rand_score(y_true, y_generalization),
+    "pseudoanonymization": adjusted_rand_score(y_true, y_pseudoanonymization)
 }
 
 with open("rand_score_Sinasc.json", "w") as f:
